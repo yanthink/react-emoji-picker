@@ -3,7 +3,7 @@ import React from "react";
 import emojiToolkit from "emoji-toolkit";
 // @ts-ignore
 import strategy from 'emoji-toolkit/emoji.json';
-import {each} from 'lodash';
+import { each, difference } from 'lodash';
 import store from 'store';
 import Emoji from './Emoji';
 import Categories from './Categories';
@@ -36,7 +36,7 @@ export interface PickerProps {
 
 export interface PickerState {
   emojiData: EmojiDataType;
-  recentUnicodes: string[];
+  recentKeys: string[];
   recentRows: [];
   modifier: number; // 肤色 0-5
   category: string;
@@ -93,7 +93,7 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
 
   state: PickerState = {
     emojiData: createEmojiDataFromStrategy(strategy),
-    recentUnicodes: store.get('emoji-recent', []),
+    recentKeys: store.get('emoji-recent', []),
     recentRows: [],
     category: 'recent',
     modifier: store.get('emoji-modifier') || 0,
@@ -114,6 +114,15 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
    */
   categories: any;
 
+  constructor(props: PickerProps) {
+    super(props);
+
+    if (!Array.isArray(this.state.recentKeys)) {
+      this.state.recentKeys = [];
+      store.remove('emoji-recent');
+    }
+  }
+
   componentWillMount() {
     each(this.props.emojiToolkit, (value, key) => {
       // @ts-ignore
@@ -123,29 +132,29 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
     this.rowsSelector = createRowsSelector();
     this.recentRowsSelector = createRecentRowsSelector();
 
-    this.reloadRecentRows(this.state.recentUnicodes);
+    this.reloadRecentRows(this.state.recentKeys);
   }
 
   componentDidMount() {
-    this.setState({category: this.categories.getActiveCategory()});
+    this.setState({ category: this.categories.getActiveCategory() });
   }
 
   componentWillUnmount() {
-    const {recentUnicodes} = this.state;
-    store.set('emoji-recent', recentUnicodes);
+    const { recentKeys } = this.state;
+    store.set('emoji-recent', recentKeys);
   }
 
   onActiveCategoryChange = (category: string) => {
     if (category !== this.state.category) {
-      this.setState({category});
+      this.setState({ category });
       if (category === 'recent') {
-        this.reloadRecentRows(this.state.recentUnicodes);
+        this.reloadRecentRows(this.state.recentKeys);
       }
     }
   };
 
   onModifierChange = (modifier: number) => {
-    this.setState({modifier});
+    this.setState({ modifier });
     store.set('emoji-modifier', modifier);
   };
 
@@ -158,44 +167,54 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
   };
 
   handleSearch = () => {
-    this.setState({term: this.search.value});
+    this.setState({ term: this.search.value });
   };
 
   handleEmojiSelect = (emoji: any) => {
-    let {recentUnicodes} = this.state;
-    const originalRecentUnicodesCount = recentUnicodes.length;
+    let { recentKeys } = this.state;
+    const originalRecentKeysCount = recentKeys.length;
 
-    recentUnicodes = recentUnicodes.filter(unicode => unicode !== emoji.code_points.output);
-    recentUnicodes.unshift(emoji.code_points.output);
-    if (recentUnicodes.length > this.props.recentCount) {
-      recentUnicodes = recentUnicodes.slice(0, this.props.recentCount);
+    recentKeys = recentKeys.filter(key => key !== emoji._key);
+    recentKeys.unshift(emoji._key);
+    if (recentKeys.length > this.props.recentCount) {
+      recentKeys = recentKeys.slice(0, this.props.recentCount);
     }
-    this.setState({recentUnicodes});
-    store.set('emoji-recent', recentUnicodes);
+    this.setState({ recentKeys });
+    store.set('emoji-recent', recentKeys);
 
-    if (emoji.category !== 'recent' && originalRecentUnicodesCount < this.props.recentCount) {
-      this.reloadRecentRows(recentUnicodes);
+    if (emoji.category !== 'recent' && originalRecentKeysCount < this.props.recentCount) {
+      this.reloadRecentRows(recentKeys);
     }
 
     this.props.onSelect(emoji);
   };
 
-  reloadRecentRows(recentUnicodes: string[]) {
-    const {recentCount} = this.props;
+  reloadRecentRows(recentKeys: string[]) {
+    const { recentCount } = this.props;
 
     let recentRows = [];
     if (categories.recent && recentCount > 0) {
-      recentRows = this.recentRowsSelector({recent: categories.recent}, getRecentCategory(strategy, recentUnicodes.slice(0, recentCount)));
+      let keys = recentKeys.slice(0, recentCount);
+
+      const { recentCategory, notFounds } = getRecentCategory(strategy, keys);
+
+      if (notFounds.length > 0) {
+        keys = difference(keys, notFounds);
+        this.setState({ recentKeys: keys });
+        store.set('emoji-recent', keys);
+      }
+
+      recentRows = this.recentRowsSelector({ recent: categories.recent }, recentCategory);
     }
 
-    this.setState({recentRows});
+    this.setState({ recentRows });
   }
 
   renderHeader() {
-    const {rowHeight, recentCount} = this.props;
+    const { rowHeight, recentCount } = this.props;
     return (
       <header className="emoji-dialog-header" role="menu">
-        <ul style={{height: rowHeight}}>
+        <ul style={{ height: rowHeight }}>
           {Object.keys(categories).map(key => {
             if (recentCount < 1 && key === 'recent') {
               return null;
@@ -211,7 +230,7 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
                 }}
               >
                 <Emoji
-                  emoji={{shortname: `:${category.emoji}:`}}
+                  emoji={{ shortname: `:${category.emoji}:` }}
                   ariaLabel={category.title}
                   role="menuitem"
                   onSelect={() => {
@@ -242,8 +261,8 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
   }
 
   renderContent() {
-    const {headerHowHeight, rowHeight, search} = this.props;
-    const {emojiData, modifier, term, recentRows} = this.state;
+    const { headerHowHeight, rowHeight, search } = this.props;
+    const { emojiData, modifier, term, recentRows } = this.state;
     let rows: any = this.rowsSelector(categories, emojiData, modifier, term);
 
     if (!term && categories.recent && recentRows.length > 0) {
@@ -253,7 +272,7 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
     return (
       <div
         className="emoji-categories-wrapper"
-        style={{top: search ? rowHeight as number + 38 : rowHeight}}
+        style={{ top: search ? rowHeight as number + 38 : rowHeight }}
       >
         <Categories
           ref={this.setCategoriesRef}
@@ -270,7 +289,7 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
   }
 
   render() {
-    const {headerHowHeight, rowHeight} = this.props;
+    const { headerHowHeight, rowHeight } = this.props;
     const dialogWidth = rowHeight as number * 9 + 30;
     const dialogHeight = rowHeight as number * 7 + (headerHowHeight as number);
     return (

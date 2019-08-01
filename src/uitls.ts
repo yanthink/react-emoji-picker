@@ -1,7 +1,7 @@
 // @ts-ignore
 import escape from "escape-string-regexp";
-import {map, values, chunk} from 'lodash';
-import {CategoriesType} from "./Picker";
+import { map, values, chunk } from 'lodash';
+import { CategoriesType } from "./Picker";
 
 export interface EmojiType {
   ascii: string[];
@@ -26,6 +26,7 @@ export interface EmojiType {
   shortname: string;
   shortname_alternates: string[];
   unicode_version: number;
+  _key: string;
 }
 
 export interface EmojiDataType {
@@ -34,7 +35,7 @@ export interface EmojiDataType {
   }
 }
 
-export function createEmojiDataFromStrategy(strategy: { [unnicode: string]: EmojiType }) {
+export function createEmojiDataFromStrategy(strategy: { [key: string]: EmojiType }) {
   const emojiData: EmojiDataType = {};
 
   Object.keys(strategy)
@@ -48,49 +49,55 @@ export function createEmojiDataFromStrategy(strategy: { [unnicode: string]: Emoj
       return 1;
     })
     .forEach(key => {
-      const emoji = strategy[key];
-      const {shortname} = emoji;
-      const keyword = shortname.replace(/:/g, '');
+      try {
+        const emoji = strategy[key];
+        const { shortname } = emoji;
+        const keyword = shortname.replace(/:/g, '');
 
-      if (emoji.category === 'modifier') {
-        return;
-      }
-
-      // https://github.com/joypixels/emojione/issues/617
-      const notFoundIcons = [
-        ':digit_zero:',
-        ':digit_one:',
-        ':digit_two:',
-        ':digit_three:',
-        ':digit_four:',
-        ':digit_five:',
-        ':digit_six:',
-        ':digit_seven:',
-        ':digit_eight:',
-        ':digit_nine:',
-      ];
-
-      if (notFoundIcons.includes(shortname)) {
-        return;
-      }
-
-      if (!emojiData[emoji.category]) {
-        emojiData[emoji.category] = {};
-      }
-
-      emoji.keywords.push(emoji.name);
-      if (!emoji.keywords.includes(keyword)) {
-        emoji.keywords.push(keyword);
-      }
-
-      // 肤色处理
-      const match = keyword.match(/(.*?)_tone(\d?)$/);
-      if (match) {
-        if (!!emojiData[emoji.category][match[1]]) {
-          emojiData[emoji.category][match[1]].push(emoji);
+        if (emoji.category === 'modifier') {
+          return;
         }
-      } else {
-        emojiData[emoji.category][keyword] = [emoji];
+
+        // https://github.com/joypixels/emojione/issues/617
+        const notFoundIcons = [
+          ':digit_zero:',
+          ':digit_one:',
+          ':digit_two:',
+          ':digit_three:',
+          ':digit_four:',
+          ':digit_five:',
+          ':digit_six:',
+          ':digit_seven:',
+          ':digit_eight:',
+          ':digit_nine:',
+        ];
+
+        if (notFoundIcons.includes(shortname)) {
+          return;
+        }
+
+        if (!emojiData[emoji.category]) {
+          emojiData[emoji.category] = {};
+        }
+
+        emoji._key = key;
+
+        emoji.keywords.push(emoji.name);
+        if (!emoji.keywords.includes(keyword)) {
+          emoji.keywords.push(keyword);
+        }
+
+        // 肤色处理
+        const match = keyword.match(/(.*?)_tone(\d?)$/);
+        if (match) {
+          if (!!emojiData[emoji.category][match[1]]) {
+            emojiData[emoji.category][match[1]].push(emoji);
+          }
+        } else {
+          emojiData[emoji.category][keyword] = [emoji];
+        }
+      } catch (e) {
+        //
       }
     });
 
@@ -116,11 +123,11 @@ export function rowsSelector(categories: CategoriesType, emojiData: EmojiDataTyp
       });
     }
 
-    return {category, emojis, id};
+    return { category, emojis, id };
   })
-    .filter(({emojis}) => emojis.length > 0)
-    .map(({category, emojis, id}) => [
-      {category, id},
+    .filter(({ emojis }) => emojis.length > 0)
+    .map(({ category, emojis, id }) => [
+      { category, id },
       ...chunk(emojis, 9),
     ])
     .reduce((rows, categoryAndEmojiRows) => [...rows, ...categoryAndEmojiRows], []);
@@ -168,21 +175,28 @@ export function createRecentRowsSelector() {
   };
 }
 
-export function getRecentCategory(strategy: { [unnicode: string]: EmojiType }, recentUnicodes: string[]) {
+export function getRecentCategory(strategy: { [key: string]: EmojiType }, recentKeys: string[]) {
   const recentCategory: EmojiDataType = {};
+  const notFounds: string[] = [];
 
-  recentUnicodes.forEach(unicode => {
-    const emoji = strategy[unicode];
-    const {shortname} = emoji;
-    const keyword = shortname.replace(/:/g, '');
-    const category = 'recent';
+  Array.isArray(recentKeys) && recentKeys.forEach(key => {
+    try {
+      const emoji = strategy[key];
+      const { shortname } = emoji;
+      const keyword = shortname.replace(/:/g, '');
+      const category = 'recent';
 
-    if (!recentCategory[category]) {
-      recentCategory[category] = {};
+      if (!recentCategory[category]) {
+        recentCategory[category] = {};
+      }
+
+      emoji._key = key;
+
+      recentCategory[category][keyword] = [{ ...emoji, category: 'recent' }];
+    } catch (e) {
+      notFounds.push(key);
     }
-
-    recentCategory[category][keyword] = [{...emoji, category: 'recent'}];
   });
 
-  return recentCategory;
+  return { recentCategory, notFounds };
 }
