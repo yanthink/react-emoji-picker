@@ -25,12 +25,12 @@ export default class EmojiRow extends Component<EmojiRowProps> {
 
     return (
       <div className="emoji-row" style={style}>
-        {emojis.map(emoji => (
+        {emojis.map((emoji) => (
           <Emoji
             emoji={emoji}
             ariaLabel={emoji.name}
             role="option"
-            key={emoji.code_points.output}
+            key={emoji._key}
             onSelect={this.handleEmojiSelect}
           />
         ))}

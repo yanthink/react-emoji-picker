@@ -1,8 +1,9 @@
-## React SimpleMDE Markdown Editor
+## React Emoji Picker
 
-### 演示地址
+基于 [emoji-toolkit](https://github.com/joypixels/emoji-toolkit) 实现的 emoji picker
 
-https://www.einsition.com/demos/yt-emoji-picker
+* 演示地址: https://www.einsition.com/demos/yt-emoji-picker
+* Emoji cheat sheet 速查表: https://www.einsition.com/tools/emoji-cheat-sheet
 
 ### 安装
 

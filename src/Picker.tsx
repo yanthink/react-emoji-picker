@@ -14,7 +14,7 @@ import {
   EmojiType,
   createRowsSelector,
   createRecentRowsSelector
-} from './uitls'
+} from './uitls';
 import './style.less';
 
 export interface PickerProps {

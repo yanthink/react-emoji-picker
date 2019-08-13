@@ -58,19 +58,12 @@ export function createEmojiDataFromStrategy(strategy: { [key: string]: EmojiType
           return;
         }
 
+        if (emoji.category === 'regional') {
+          emoji.category = 'symbols';
+        }
+
         // https://github.com/joypixels/emojione/issues/617
-        const notFoundIcons = [
-          ':digit_zero:',
-          ':digit_one:',
-          ':digit_two:',
-          ':digit_three:',
-          ':digit_four:',
-          ':digit_five:',
-          ':digit_six:',
-          ':digit_seven:',
-          ':digit_eight:',
-          ':digit_nine:',
-        ];
+        const notFoundIcons: string[] = [];
 
         if (notFoundIcons.includes(shortname)) {
           return;
