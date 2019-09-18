@@ -1,7 +1,7 @@
 // @ts-ignore
-import escape from "escape-string-regexp";
+import escape from 'escape-string-regexp';
 import { map, values, chunk } from 'lodash';
-import { CategoriesType } from "./Picker";
+import { CategoriesType } from './Picker';
 
 export interface EmojiType {
   ascii: string[];

@@ -1,6 +1,6 @@
-import React, {Component} from "react";
+import React, { Component } from 'react';
 // @ts-ignore
-import shallowCompare from "react-addons-shallow-compare";
+import shallowCompare from 'react-addons-shallow-compare';
 
 export interface CategoryHeaderProps {
   category: {
@@ -16,7 +16,7 @@ export default class CategoryHeader extends Component<CategoryHeaderProps> {
   }
 
   render() {
-    const {category, headingDecoration, style} = this.props;
+    const { category, headingDecoration, style } = this.props;
 
     return (
       <div className="emoji-category-header" style={style}>

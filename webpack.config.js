@@ -13,7 +13,6 @@ module.exports = {
   // 配置 devServer 的输出目录和 publicPath
   output: {
     filename: 'index.js',
-    publicPath: 'public',
     path: path.resolve(__dirname, 'dist'),
     libraryTarget: 'commonjs2',
   },

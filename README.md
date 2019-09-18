@@ -14,7 +14,7 @@ npm install -S yt-emoji-picker
 
 ### 使用
 
-您可以在 [demo](demo/src/App.js) 中查看基本用法。
+您可以在 [demo](demo/src/pages/index.js) 中查看基本用法。
 
 ### Demo
 

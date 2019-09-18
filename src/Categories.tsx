@@ -1,16 +1,21 @@
-import React, {Component} from "react";
-import PropTypes from "prop-types";
+import React, { Component } from 'react';
 // @ts-ignore
-import AutoSizer from "react-virtualized/dist/commonjs/AutoSizer";
+import AutoSizer from 'react-virtualized/dist/commonjs/AutoSizer';
 // @ts-ignore
-import List from "react-virtualized/dist/commonjs/List";
-import {findIndex, throttle} from "lodash";
-import CategoryHeader from "./CategoryHeader";
-import EmojiRow from "./EmojiRow";
-import Modifiers from "./Modifiers";
-import {EmojiType} from "./uitls";
+import List from 'react-virtualized/dist/commonjs/List';
+import { findIndex, throttle } from 'lodash';
+import CategoryHeader from './CategoryHeader';
+import EmojiRow from './EmojiRow';
+import Modifiers from './Modifiers';
+import { EmojiType } from './utils';
 
 export interface CategoriesProps {
+  emojiToolkit?: {
+    emojiSize?: number;
+    imagePathPNG?: string;
+    sprites?: boolean;
+    spriteSize?: number;
+  },
   rows: { category: object; id: string }[];
   headerHowHeight: number;
   rowHeight: number;
@@ -45,7 +50,7 @@ export default class Categories extends Component<CategoriesProps> {
   };
 
   onScroll = throttle(
-    ({scrollTop}) => {
+    ({ scrollTop }) => {
       const activeCategory = this.getActiveCategory(scrollTop);
       if (activeCategory !== this.lastActiveCategory) {
         this.lastActiveCategory = activeCategory;
@@ -56,7 +61,7 @@ export default class Categories extends Component<CategoriesProps> {
   );
 
   getActiveCategory = (scrollTop = 0) => {
-    const {rows} = this.props;
+    const { rows } = this.props;
 
     if (scrollTop === 0) {
       if (rows.length === 0) return undefined;
@@ -85,23 +90,23 @@ export default class Categories extends Component<CategoriesProps> {
     return currentRow.id;
   };
 
-  rowHeight = ({index}: { index: number }) => {
-    const {rows, headerHowHeight, rowHeight} = this.props;
+  rowHeight = ({ index }: { index: number }) => {
+    const { rows, headerHowHeight, rowHeight } = this.props;
     const row = rows[index];
     return Array.isArray(row) ? rowHeight : headerHowHeight;
   };
 
-  rowRenderer = ({key, index, style}: { key: string; index: number; style: object }) => {
+  rowRenderer = ({ key, index, style }: { key: string; index: number; style: object }) => {
     const row = this.props.rows[index];
-    const {onSelect} = this.props;
+    const { onSelect } = this.props;
 
     if (Array.isArray(row)) { // 渲染emoji表情
       return (
-        <EmojiRow key={key} onSelect={onSelect} style={style} emojis={row} />
+        <EmojiRow key={key} onSelect={onSelect} style={style} emojis={row} emojiToolkit={this.props.emojiToolkit} />
       );
     }
 
-    const {category, id} = row;
+    const { category, id } = row;
     const attributes: any = {
       key,
       category,
@@ -110,7 +115,7 @@ export default class Categories extends Component<CategoriesProps> {
     };
 
     if (index === 0) { // 渲染肤色选择按钮
-      const {modifier, onModifierChange} = this.props;
+      const { modifier, onModifierChange } = this.props;
 
       attributes.headingDecoration = (
         <Modifiers active={modifier} onChange={onModifierChange} />
@@ -137,7 +142,7 @@ export default class Categories extends Component<CategoriesProps> {
     return (
       <AutoSizer>
         {
-          ({height, width}: { height: number; width: number }) => (
+          ({ height, width }: { height: number; width: number }) => (
             <List
               height={height}
               onScroll={this.onScroll}

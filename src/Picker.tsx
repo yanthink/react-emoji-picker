@@ -1,9 +1,7 @@
-import React from "react";
-// @ts-ignore
-import emojiToolkit from "emoji-toolkit";
+import React from 'react';
 // @ts-ignore
 import strategy from 'emoji-toolkit/emoji.json';
-import { each, difference } from 'lodash';
+import { difference } from 'lodash';
 import store from 'store';
 import Emoji from './Emoji';
 import Categories from './Categories';
@@ -14,7 +12,7 @@ import {
   EmojiType,
   createRowsSelector,
   createRecentRowsSelector
-} from './uitls';
+} from './utils';
 import './style.less';
 
 export interface PickerProps {
@@ -124,11 +122,6 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
   }
 
   componentWillMount() {
-    each(this.props.emojiToolkit, (value, key) => {
-      // @ts-ignore
-      emojiToolkit[key] = value;
-    });
-
     this.rowsSelector = createRowsSelector();
     this.recentRowsSelector = createRecentRowsSelector();
 
@@ -236,6 +229,7 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
                   onSelect={() => {
                     this.categories.jumpToCategory(key);
                   }}
+                  emojiToolkit={this.props.emojiToolkit}
                 />
               </li>
             )
@@ -283,6 +277,7 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
           onSelect={this.handleEmojiSelect}
           onActiveCategoryChange={this.onActiveCategoryChange}
           onModifierChange={this.onModifierChange}
+          emojiToolkit={this.props.emojiToolkit}
         />
       </div>
     );

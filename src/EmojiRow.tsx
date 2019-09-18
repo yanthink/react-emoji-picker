@@ -1,11 +1,16 @@
-import React, {Component} from "react";
+import React, { Component } from 'react';
 // @ts-ignore
-import shallowCompare from "react-addons-shallow-compare";
-import Emoji from "./Emoji";
-import {EmojiType} from "./uitls";
-
+import shallowCompare from 'react-addons-shallow-compare';
+import Emoji from './Emoji';
+import { EmojiType } from './utils';
 
 export interface EmojiRowProps {
+  emojiToolkit?: {
+    emojiSize?: number;
+    imagePathPNG?: string;
+    sprites?: boolean;
+    spriteSize?: number;
+  },
   emojis: EmojiType[];
   onSelect: (emoji: EmojiType) => void;
   style: Object;
@@ -21,7 +26,7 @@ export default class EmojiRow extends Component<EmojiRowProps> {
   };
 
   render() {
-    const {emojis, style} = this.props;
+    const { emojis, style } = this.props;
 
     return (
       <div className="emoji-row" style={style}>
@@ -32,6 +37,7 @@ export default class EmojiRow extends Component<EmojiRowProps> {
             role="option"
             key={emoji._key}
             onSelect={this.handleEmojiSelect}
+            emojiToolkit={this.props.emojiToolkit}
           />
         ))}
       </div>

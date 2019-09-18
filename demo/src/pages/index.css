@@ -1,0 +1,21 @@
+.actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-top: -12px;
+}
+
+.preview {
+  padding: 12px;
+  line-height: 21px;
+  border: 1px dashed #999;
+  border-radius: 4px;
+}
+.preview > p:last-child {
+  margin-bottom: 0;
+}
+
+.preview .joypixels {
+  transform-origin: left;
+  transform: scale(.75, .75);
+}

@@ -1,5 +1,5 @@
-import React, {Component} from "react";
-import {map} from "lodash";
+import React, { Component } from 'react';
+import { map } from 'lodash';
 
 export interface ModifiersProps {
   active: number;
@@ -28,7 +28,7 @@ export default class Modifiers extends Component<ModifiersProps> {
             <a
               onClick={() => this.handleModifierClick(modifier)}
               className={Number(this.props.active) === Number(modifier) ? "modifier active" : "modifier"}
-              style={{background: hex}}
+              style={{ background: hex }}
               aria-label={`Fitzpatrick type ${modifier}`}
             />
           </li>
