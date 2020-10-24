@@ -28,6 +28,7 @@ export interface PickerProps {
   search: boolean;
   onSelect: (emoji: EmojiType) => void;
   recentCount: number;
+  categories?: CategoriesType;
   headerHowHeight?: number;
   rowHeight?: number;
 }
@@ -43,13 +44,13 @@ export interface PickerState {
 
 export type CategoriesType = { [key: string]: { title: string; emoji: string; } };
 
-const categories: { [key: string]: { title: string; emoji: string; } } = {
+const defaultCategories: CategoriesType = {
   recent: {
     title: '常用',
     emoji: 'clock3',
   },
   people: {
-    title: '表情符号与任务',
+    title: '表情符号与人物',
     emoji: 'smile',
   },
   nature: {
@@ -84,6 +85,7 @@ const categories: { [key: string]: { title: string; emoji: string; } } = {
 
 export default class Picker extends React.Component<PickerProps, PickerState> {
   static defaultProps = {
+    categories: defaultCategories,
     recentCount: 36,
     headerHowHeight: 34,
     rowHeight: 40,
@@ -101,7 +103,7 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
   /**
    * search input ref
    */
-  search: any;
+  searchRef: any;
 
   rowsSelector: any;
 
@@ -110,7 +112,7 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
   /**
    * Categories ref
    */
-  categories: any;
+  categoriesRef: any;
 
   constructor(props: PickerProps) {
     super(props);
@@ -129,7 +131,7 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
   }
 
   componentDidMount() {
-    this.setState({ category: this.categories.getActiveCategory() });
+    this.setState({ category: this.categoriesRef.getActiveCategory() });
   }
 
   componentWillUnmount() {
@@ -151,16 +153,16 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
     store.set('emoji-modifier', modifier);
   };
 
-  setCategoriesRef = (categories: any) => {
-    this.categories = categories;
+  setCategoriesRef = (ref: any) => {
+    this.categoriesRef = ref;
   };
 
   setSearchRef = (ref: any) => {
-    this.search = ref;
+    this.searchRef = ref;
   };
 
   handleSearch = () => {
-    this.setState({ term: this.search.value });
+    this.setState({ term: this.searchRef.value });
   };
 
   handleEmojiSelect = (emoji: any) => {
@@ -183,10 +185,10 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
   };
 
   reloadRecentRows(recentKeys: string[]) {
-    const { recentCount } = this.props;
+    const { recentCount, categories } = this.props;
 
     let recentRows = [];
-    if (categories.recent && recentCount > 0) {
+    if (categories!.recent && recentCount > 0) {
       let keys = recentKeys.slice(0, recentCount);
 
       const { recentCategory, notFounds } = getRecentCategory(strategy, keys);
@@ -197,22 +199,22 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
         store.set('emoji-recent', keys);
       }
 
-      recentRows = this.recentRowsSelector({ recent: categories.recent }, recentCategory);
+      recentRows = this.recentRowsSelector({ recent: categories!.recent }, recentCategory);
     }
 
     this.setState({ recentRows });
   }
 
   renderHeader() {
-    const { rowHeight, recentCount } = this.props;
+    const { rowHeight, recentCount, categories } = this.props;
     return (
       <header className="emoji-dialog-header" role="menu">
         <ul style={{ height: rowHeight }}>
-          {Object.keys(categories).map(key => {
+          {Object.keys(categories!).map((key: string) => {
             if (recentCount < 1 && key === 'recent') {
               return null;
             }
-            const category = categories[key];
+            const category = categories![key];
             return (
               <li
                 key={key}
@@ -227,7 +229,7 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
                   ariaLabel={category.title}
                   role="menuitem"
                   onSelect={() => {
-                    this.categories.jumpToCategory(key);
+                    this.categoriesRef.jumpToCategory(key);
                   }}
                   emojiToolkit={this.props.emojiToolkit}
                 />
@@ -255,11 +257,11 @@ export default class Picker extends React.Component<PickerProps, PickerState> {
   }
 
   renderContent() {
-    const { headerHowHeight, rowHeight, search } = this.props;
+    const { headerHowHeight, rowHeight, search, categories } = this.props;
     const { emojiData, modifier, term, recentRows } = this.state;
     let rows: any = this.rowsSelector(categories, emojiData, modifier, term);
 
-    if (!term && categories.recent && recentRows.length > 0) {
+    if (!term && categories!.recent && recentRows.length > 0) {
       rows = recentRows.concat(rows);
     }
 

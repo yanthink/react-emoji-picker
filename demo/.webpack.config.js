@@ -1,6 +1,7 @@
 /* eslint-disable */
 export default {
-  mode: 'production',
+  mode: 'development',
+  devtool: 'cheap-module-source-map',
   node: {
     setImmediate: false,
     process: 'mock',
@@ -17,7 +18,8 @@ export default {
     publicPath: '/',
     devtoolModuleFilenameTemplate: info => {
       return (0, _path().relative)(opts.cwd, info.absoluteResourcePath).replace(/\\/g, '/');
-    }
+    },
+    pathinfo: true
   },
   resolve: {
     symlinks: true,
@@ -29,7 +31,7 @@ export default {
       'react-router-config': '/Users/einsition/code/react-emoji-picker/demo/node_modules/react-router-config',
       history: '/Users/einsition/code/react-emoji-picker/demo/node_modules/umi-history',
       '@': '/Users/einsition/code/react-emoji-picker/demo/src/',
-      '@tmp': '/Users/einsition/code/react-emoji-picker/demo/src/pages/.umi-production',
+      '@tmp': '/Users/einsition/code/react-emoji-picker/demo/src/pages/.umi',
       umi: '/Users/einsition/code/react-emoji-picker/demo/node_modules/umi',
       'regenerator-runtime': '/Users/einsition/code/react-emoji-picker/demo/node_modules/umi-build-dev/node_modules/regenerator-runtime',
       antd: '/Users/einsition/code/react-emoji-picker/demo/node_modules/antd',
@@ -629,8 +631,8 @@ export default {
           {
             loader: '/Users/einsition/code/react-emoji-picker/demo/node_modules/mini-css-extract-plugin/dist/loader.js',
             options: {
-              publicPath: undefined,
-              hmr: false
+              publicPath: '/',
+              hmr: true
             }
           },
           /* config.module.rule('cssModulesExcludes_0').use('css-loader') */
@@ -676,8 +678,8 @@ export default {
           {
             loader: '/Users/einsition/code/react-emoji-picker/demo/node_modules/mini-css-extract-plugin/dist/loader.js',
             options: {
-              publicPath: undefined,
-              hmr: false
+              publicPath: '/',
+              hmr: true
             }
           },
           /* config.module.rule('cssModulesExcludes_1').use('css-loader') */
@@ -723,8 +725,8 @@ export default {
           {
             loader: '/Users/einsition/code/react-emoji-picker/demo/node_modules/mini-css-extract-plugin/dist/loader.js',
             options: {
-              publicPath: undefined,
-              hmr: false
+              publicPath: '/',
+              hmr: true
             }
           },
           /* config.module.rule('cssModulesExcludes_2').use('css-loader') */
@@ -778,8 +780,8 @@ export default {
           {
             loader: '/Users/einsition/code/react-emoji-picker/demo/node_modules/mini-css-extract-plugin/dist/loader.js',
             options: {
-              publicPath: undefined,
-              hmr: false
+              publicPath: '/',
+              hmr: true
             }
           },
           /* config.module.rule('cssModulesExcludes_3').use('css-loader') */
@@ -822,8 +824,8 @@ export default {
           {
             loader: '/Users/einsition/code/react-emoji-picker/demo/node_modules/mini-css-extract-plugin/dist/loader.js',
             options: {
-              publicPath: undefined,
-              hmr: false
+              publicPath: '/',
+              hmr: true
             }
           },
           /* config.module.rule('css').use('css-loader') */
@@ -866,8 +868,8 @@ export default {
           {
             loader: '/Users/einsition/code/react-emoji-picker/demo/node_modules/mini-css-extract-plugin/dist/loader.js',
             options: {
-              publicPath: undefined,
-              hmr: false
+              publicPath: '/',
+              hmr: true
             }
           },
           /* config.module.rule('css-in-node_modules').use('css-loader') */
@@ -910,8 +912,8 @@ export default {
           {
             loader: '/Users/einsition/code/react-emoji-picker/demo/node_modules/mini-css-extract-plugin/dist/loader.js',
             options: {
-              publicPath: undefined,
-              hmr: false
+              publicPath: '/',
+              hmr: true
             }
           },
           /* config.module.rule('less').use('css-loader') */
@@ -962,8 +964,8 @@ export default {
           {
             loader: '/Users/einsition/code/react-emoji-picker/demo/node_modules/mini-css-extract-plugin/dist/loader.js',
             options: {
-              publicPath: undefined,
-              hmr: false
+              publicPath: '/',
+              hmr: true
             }
           },
           /* config.module.rule('less-in-node_modules').use('css-loader') */
@@ -1014,8 +1016,8 @@ export default {
           {
             loader: '/Users/einsition/code/react-emoji-picker/demo/node_modules/mini-css-extract-plugin/dist/loader.js',
             options: {
-              publicPath: undefined,
-              hmr: false
+              publicPath: '/',
+              hmr: true
             }
           },
           /* config.module.rule('sass').use('css-loader') */
@@ -1058,8 +1060,8 @@ export default {
           {
             loader: '/Users/einsition/code/react-emoji-picker/demo/node_modules/mini-css-extract-plugin/dist/loader.js',
             options: {
-              publicPath: undefined,
-              hmr: false
+              publicPath: '/',
+              hmr: true
             }
           },
           /* config.module.rule('sass-in-node_modules').use('css-loader') */
@@ -1093,53 +1095,6 @@ export default {
       }
     ]
   },
-  optimization: {
-    noEmitOnErrors: true,
-    minimizer: [
-      /* config.optimization.minimizer('uglifyjs') */
-      new UglifyJsPlugin(
-        {
-          uglifyOptions: {
-            parse: {},
-            compress: {
-              warnings: false,
-              arrows: false,
-              collapse_vars: false,
-              comparisons: false,
-              computed_props: false,
-              hoist_funs: false,
-              hoist_props: false,
-              hoist_vars: false,
-              inline: false,
-              loops: false,
-              negate_iife: false,
-              properties: false,
-              reduce_funcs: false,
-              reduce_vars: false,
-              switches: false,
-              toplevel: false,
-              typeofs: false,
-              booleans: true,
-              if_return: true,
-              sequences: true,
-              unused: true,
-              conditionals: true,
-              dead_code: true,
-              evaluate: true
-            },
-            mangle: {},
-            output: {
-              comments: false,
-              ascii_only: true
-            }
-          },
-          sourceMap: false,
-          cache: true,
-          parallel: true
-        }
-      )
-    ]
-  },
   plugins: [
     /* config.plugin('extract-css') */
     new MiniCssExtractPlugin(
@@ -1152,7 +1107,7 @@ export default {
     new DefinePlugin(
       {
         'process.env': {
-          NODE_ENV: '"production"'
+          NODE_ENV: '"development"'
         },
         'process.env.BASE_URL': '"/"',
         __IS_BROWSER: 'true',
@@ -1177,15 +1132,13 @@ export default {
         clearConsole: false
       }
     ),
-    /* config.plugin('hash-module-ids') */
-    new HashedModuleIdsPlugin()
+    /* config.plugin('hmr') */
+    new HotModuleReplacementPlugin()
   ],
-  performance: {
-    hints: false
-  },
   entry: {
     umi: [
-      '/Users/einsition/code/react-emoji-picker/demo/src/pages/.umi-production/umi.js'
+      '/Users/einsition/code/react-emoji-picker/demo/node_modules/af-webpack/lib/webpackHotDevClient.js',
+      '/Users/einsition/code/react-emoji-picker/demo/src/pages/.umi/umi.js'
     ]
   }
 }
