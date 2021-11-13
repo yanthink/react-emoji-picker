@@ -1,195 +1,84 @@
-// @ts-ignore
-import escape from 'escape-string-regexp';
-import { map, values, chunk } from 'lodash';
-import { CategoriesType } from './Picker';
+import type { Categories } from './Picker';
 
-export interface EmojiType {
-  ascii: string[];
-  category: string;
-  code_points: {
-    base: string;
-    decimal: string;
-    default_matches: string[];
-    fully_qualified: string;
-    greedy_matches: string[];
-    non_fully_qualified: string;
-    output: string;
-  };
-  display: number;
-  diversities: any[];
-  diversity: string;
-  gender: string;
-  genders: string[];
-  keywords: string[];
+export interface Emoji {
   name: string;
+  unicode_version: number;
+  category: string;
   order: number;
+  display: 0 | 1;
   shortname: string;
   shortname_alternates: string[];
-  unicode_version: number;
-  _key: string;
+  ascii: string[];
+  humanform: 0 | 1;
+  diversity_base: 0 | 1;
+  diversity: string[] | null;
+  diversity_children: string[];
+  gender: string[];
+  gender_children: string[];
+  code_points: {
+    base: string;
+    fully_qualified: string;
+    decimal: string;
+    diversity_parent: string | null;
+    gender_parent: string | null;
+  },
+  keywords: string[];
 }
 
-export interface EmojiDataType {
-  [category: string]: {
-    [shortname: string]: EmojiType[]
-  }
+export interface EmojiData {
+  [category: string]: Emoji[][];
 }
 
-export function createEmojiDataFromStrategy(strategy: { [key: string]: EmojiType }) {
-  const emojiData: EmojiDataType = {};
+export type RowsData = (Categories[number] | Emoji[])[];
+
+const chunk = <T>(arr: T[], size: number): T[][] => Array.from({
+  length: Math.ceil(arr.length / size),
+}, (v, i) => arr.slice(i * size, i * size + size));
+
+export function createEmojiDataFromStrategy(strategy: { [key: string]: Emoji }): EmojiData {
+  const emojiData: EmojiData = {};
 
   Object.keys(strategy)
-    .sort((a, b) => {
-      if (strategy[a].order < strategy[b].order) {
-        return -1;
-      }
-      if (strategy[a].order === strategy[b].order) {
-        return 0;
-      }
-      return 1;
-    })
+    .sort((k1, k2) => strategy[k1].order - strategy[k2].order)
     .forEach(key => {
-      try {
-        const emoji = strategy[key];
-        const { shortname } = emoji;
-        const keyword = shortname.replace(/:/g, '');
+      const emoji = strategy[key];
 
-        if (emoji.category === 'modifier') {
-          return;
-        }
-
-        if (emoji.category === 'regional') {
-          emoji.category = 'symbols';
-        }
-
-        // https://github.com/joypixels/emojione/issues/617
-        const notFoundIcons: string[] = [];
-
-        if (notFoundIcons.includes(shortname)) {
-          return;
-        }
-
-        if (!emojiData[emoji.category]) {
-          emojiData[emoji.category] = {};
-        }
-
-        emoji._key = key;
-
-        emoji.keywords.push(emoji.name);
-        if (!emoji.keywords.includes(keyword)) {
-          emoji.keywords.push(keyword);
-        }
-
-        // 肤色处理
-        const match = keyword.match(/(.*?)_tone(\d?)$/);
-        if (match) {
-          if (!!emojiData[emoji.category][match[1]]) {
-            emojiData[emoji.category][match[1]].push(emoji);
-          }
-        } else {
-          emojiData[emoji.category][keyword] = [emoji];
-        }
-      } catch (e) {
-        //
+      if (emoji.diversity || emoji.category === 'modifier') {
+        return;
       }
+
+      const category = emoji.category.replace('regional', 'symbols');
+
+      (emojiData[category] ??= []).push([emoji, ...emoji.diversity_children.map(childKey => ({
+        ...strategy[childKey],
+        category,
+      }))]);
     });
 
   return emojiData;
 }
 
-/**
- * 查找对应肤色的emoji
- */
-export function findEmojiVariant(emojis: EmojiType[], modifier: number) {
-  return modifier && emojis[modifier] ? emojis[modifier] : emojis[0];
-}
-
-export function rowsSelector(categories: CategoriesType, emojiData: EmojiDataType, modifier: number, term: string) {
-  return map(categories, (category, id) => {
-    const list = emojiData[id] || {};
-    let emojis = values(list).map((data) => findEmojiVariant(data, modifier));
+export function rowsSelector(categories: Categories, emojiData: EmojiData, chunkSize = 9, modifier = 0, term = ''): RowsData {
+  return categories.map(({ category, title, shortname }) => {
+    let emojis = emojiData[category]?.map(emojis => emojis[modifier] || emojis[0]) || [];
 
     if (term) {
+      const lowerTerm = term.toLowerCase();
       emojis = emojis.filter(emoji => {
-        const searchTermRegExp = new RegExp(`^(?:.* +)*${escape(term)}`, "i");
-        return emoji.keywords.some(keyword => searchTermRegExp.test(keyword));
+        return (
+          emoji.shortname.indexOf(lowerTerm) > -1 ||
+          emoji.shortname_alternates.some(str => str.indexOf(lowerTerm) > -1) ||
+          emoji.ascii.some(str => str.indexOf(lowerTerm) > -1) ||
+          emoji.keywords.some(str => str.indexOf(lowerTerm) > -1)
+        );
       });
     }
 
-    return { category, emojis, id };
+    return { category, title, shortname, emojis };
   })
     .filter(({ emojis }) => emojis.length > 0)
-    .map(({ category, emojis, id }) => [
-      { category, id },
-      ...chunk(emojis, 9),
-    ])
-    .reduce((rows, categoryAndEmojiRows) => [...rows, ...categoryAndEmojiRows], []);
-}
-
-export function createRowsSelector() {
-  let lastResult: any = null;
-  let lastCategories: any = null;
-  let lastModifier: any = null;
-  let lastTerm: any = null;
-
-  return function memoizedRowsSelector(categories: CategoriesType, emojiData: EmojiDataType, modifier: number, term: string) {
-    if (
-      lastCategories !== categories ||
-      lastModifier !== modifier ||
-      lastTerm !== term
-    ) {
-      lastResult = rowsSelector(categories, emojiData, modifier, term);
-      lastCategories = categories;
-      lastModifier = modifier;
-      lastTerm = term;
-    }
-
-    return lastResult;
-  };
-}
-
-export function createRecentRowsSelector() {
-  let lastResult: any = null;
-  let lastCategories: any = null;
-
-  return function memoizedRowsSelector(categories: CategoriesType, emojiData: EmojiDataType, loadCached = false) {
-    if (loadCached && lastResult.length > 0) {
-      return lastResult;
-    }
-
-    if (
-      lastCategories !== categories
-    ) {
-      lastResult = rowsSelector(categories, emojiData, 0, '');
-      lastCategories = categories;
-    }
-
-    return lastResult;
-  };
-}
-
-export function getRecentCategory(strategy: { [key: string]: EmojiType }, recentKeys: string[]) {
-  const recentCategory: EmojiDataType = {};
-  const notFounds: string[] = [];
-
-  Array.isArray(recentKeys) && recentKeys.forEach(key => {
-    try {
-      const emoji = strategy[key];
-      const { shortname } = emoji;
-      const keyword = shortname.replace(/:/g, '');
-      const category = 'recent';
-
-      if (!recentCategory[category]) {
-        recentCategory[category] = {};
-      }
-
-      emoji._key = key;
-
-      recentCategory[category][keyword] = [{ ...emoji, category: 'recent' }];
-    } catch (e) {
-      notFounds.push(key);
-    }
-  });
-
-  return { recentCategory, notFounds };
+    .flatMap(({ category, title, shortname, emojis }) => [
+      { category, title, shortname },
+      ...chunk(emojis, chunkSize),
+    ]);
 }

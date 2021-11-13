@@ -1,27 +1,24 @@
 const path = require('path');
 const nodeExternals = require('webpack-node-externals');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
-const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+const TerserJSPlugin = require('terser-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
-  // 设置 sourcemaps 为 eval 模式，将模块封装到 eval 包裹起来
-  // devtool: 'eval',
-  mode: "production",
-  // 我们应用的入口, 在 `src` 目录 (我们添加到下面的 resolve.modules):
-  entry: 'index.tsx',
-  // 配置 devServer 的输出目录和 publicPath
+  mode: 'production',
+  entry: './src/index.tsx',
   output: {
     filename: 'index.js',
     path: path.resolve(__dirname, 'dist'),
-    libraryTarget: 'commonjs2',
+    library: {
+      type: 'commonjs2',
+    },
   },
-  // 告诉 Webpack 加载 TypeScript 文件
   resolve: {
-    // 首先寻找模块中的 .ts(x) 文件, 然后是 .js 文件
     extensions: ['.ts', '.tsx', '.js'],
-    // 在模块中添加 src, 当你导入文件时，可以将 src 作为相关路径
-    modules: ['src', 'node_modules'],
+    modules: ['node_modules'],
   },
   module: {
     rules: [
@@ -38,18 +35,24 @@ module.exports = {
       {
         test: /\.less$/,
         use: [
-          MiniCssExtractPlugin.loader,
+          { loader: MiniCssExtractPlugin.loader },
           {
             loader: 'css-loader',
             options: {
               modules: {
-                localIdentName: '[name]__[local]___[hash:base64:5]',
+                localIdentName: 'yt-emoji-picker-[local]',
+                exportLocalsConvention: 'camelCase',
               },
             },
           },
-          'less-loader',
+          {
+            loader: 'less-loader',
+            options: {
+              lessOptions: { javascriptEnabled: true },
+            },
+          },
         ],
-        exclude: [/node_modules/],
+        exclude: /node_modules/,
       },
       {
         test: /\.css$/,
@@ -58,13 +61,27 @@ module.exports = {
           'css-loader',
         ],
       },
-    ]
+    ],
   },
-  externals: [nodeExternals()],
+  externalsPresets: { node: true },
+  externals: [nodeExternals({
+    allowlist: [],
+  })],
   optimization: {
+    minimize: true,
     minimizer: [
-      new UglifyJsPlugin(),
-      new OptimizeCSSAssetsPlugin(),
+      new CleanWebpackPlugin(),
+      new CopyPlugin({
+        patterns: [
+          { from: 'src/emoji-toolkit.d.ts', to: 'emoji-toolkit.d.ts' },
+        ],
+      }),
+      // 一般来讲 cjs 或者 esm 的组件库输出，都会被第三方通过 npm install 来使用，所以这两种代码输出的可以是不压缩的代码，以保证一定的可读性；
+      // 但是如果第三方使用也通过 webpack 作为打包工具，那么这里就会遇到问题 TypeError: __webpack_modules__[moduleId] is not a function。
+      // 这个问题的原因是，一个使用 webpack 作为打包工具的第三方使用者，使用了我们通过 webpack 5.x 且没有被 terser 压缩过的 package 引起的 #11827，
+      // 解决办法就是输出压缩后的代码（相应的，代码基本不可读）
+      new TerserJSPlugin(),
+      new CssMinimizerPlugin(),
     ],
   },
   plugins: [

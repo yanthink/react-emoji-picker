@@ -1,39 +1,37 @@
-import React, { Component } from 'react';
-import { map } from 'lodash';
+import React from 'react';
+import  classnames from 'classnames';
+import styles from './style.less';
 
 export interface ModifiersProps {
   active: number;
   onChange: (modifier: number) => void;
 }
 
-const modifiers: { [index: number]: string } = {
-  0: "#FFDE5C",
-  1: "#FFE1BB",
-  2: "#FFD0A9",
-  3: "#D7A579",
-  4: "#B57D52",
-  5: "#8B6858",
+const modifiers: string[] = [
+  '#FFDE5C',
+  '#FFE1BB',
+  '#FFD0A9',
+  '#D7A579',
+  '#B57D52',
+  '#8B6858',
+];
+
+const Modifiers: React.FC<ModifiersProps> = ({ active, onChange }) => {
+  return (
+    <ol className={styles.modifiers}>
+      {modifiers.map((hex, modifier) => (
+        <li key={modifier}>
+          <a
+            onClick={() => onChange?.(modifier)}
+            className={classnames(styles.modifiersItem, {
+              [styles.modifiersItemActive]: active === modifier,
+            })}
+            style={{ background: hex }}
+          />
+        </li>
+      ))}
+    </ol>
+  );
 };
 
-export default class Modifiers extends Component<ModifiersProps> {
-  handleModifierClick = (modifier: number) => {
-    this.props.onChange(modifier);
-  };
-
-  render() {
-    return (
-      <ol className="modifiers">
-        {map(modifiers, (hex, modifier: number) => (
-          <li key={modifier}>
-            <a
-              onClick={() => this.handleModifierClick(modifier)}
-              className={Number(this.props.active) === Number(modifier) ? "modifier active" : "modifier"}
-              style={{ background: hex }}
-              aria-label={`Fitzpatrick type ${modifier}`}
-            />
-          </li>
-        ))}
-      </ol>
-    );
-  }
-}
+export default Modifiers;

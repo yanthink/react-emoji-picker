@@ -1,46 +1,28 @@
-import React, { Component } from 'react';
-// @ts-ignore
-import shallowCompare from 'react-addons-shallow-compare';
-import Emoji from './Emoji';
-import { EmojiType } from './utils';
+import React from 'react';
+import type { EmojiItemProps } from './EmojiItem';
+import EmojiItem from './EmojiItem';
+import styles from './style.less';
 
 export interface EmojiRowProps {
-  emojiToolkit?: {
-    emojiSize?: number;
-    imagePathPNG?: string;
-    sprites?: boolean;
-    spriteSize?: number;
-  },
-  emojis: EmojiType[];
-  onSelect: (emoji: EmojiType) => void;
-  style: Object;
+  emojiToolkit?: EmojiItemProps['emojiToolkit'];
+  emojis: EmojiItemProps['emoji'][];
+  size: EmojiItemProps['size'];
+  onSelect?: EmojiItemProps['onSelect'];
+  style?: React.CSSProperties;
 }
 
-export default class EmojiRow extends Component<EmojiRowProps> {
-  shouldComponentUpdate(nextProps: EmojiRowProps, nextState: any) {
-    return shallowCompare(this, nextProps, nextState);
-  }
+const EmojiRow: React.FC<EmojiRowProps> = ({ emojis, style, ...restProps }) => {
+  return (
+    <div className={styles.emojiRow} style={style}>
+      {emojis.map((emoji) => (
+        <EmojiItem
+          {...restProps}
+          key={emoji.shortname}
+          emoji={emoji}
+        />
+      ))}
+    </div>
+  );
+};
 
-  handleEmojiSelect = (e: any, emoji: any) => {
-    this.props.onSelect(emoji);
-  };
-
-  render() {
-    const { emojis, style } = this.props;
-
-    return (
-      <div className="emoji-row" style={style}>
-        {emojis.map((emoji) => (
-          <Emoji
-            emoji={emoji}
-            ariaLabel={emoji.name}
-            role="option"
-            key={emoji._key}
-            onSelect={this.handleEmojiSelect}
-            emojiToolkit={this.props.emojiToolkit}
-          />
-        ))}
-      </div>
-    );
-  }
-}
+export default EmojiRow;

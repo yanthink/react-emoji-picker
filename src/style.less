@@ -1,137 +1,135 @@
-:global {
-  .emoji-dialog {
-    background: #fff;
-    border-radius: 2px;
-    overflow: hidden;
-    position: relative;
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 2px 15px rgba(0, 0, 0, 0.1);
+.dialog {
+  position: relative;
+  background: #fff;
+  border-radius: 2px;
+  overflow: hidden;
+  box-shadow: 0 3px 6px -4px #0000001f, 0 6px 16px #00000014, 0 9px 28px 8px #0000000d;
+  * {
+    box-sizing: border-box;
+  }
+}
 
-    * {
-      box-sizing: border-box;
-    }
+.header {
+  background-color: #f0f0f0;
+  padding: 0 8px;
 
-    .emoji {
+  &-menu {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    &-item {
       display: inline-block;
-      padding: 8px;
-      height: 100%;
-      cursor: default;
 
-      img, svg {
-        height: 100%;
-      }
-    }
-
-    .emoji-dialog-header {
-      background-color: rgb(240, 240, 240);
-      padding: 0 8px;
-
-      ul {
-        padding: 0;
-        margin: 0;
-        list-style: none;
+      > div {
+        //cursor: pointer;
       }
 
-      li {
-        display: inline-block;
-      }
-
-      li.active {
+      &-active {
         background: #fff;
       }
     }
+  }
+}
 
-    .emoji-row {
-      padding-left: 8px;
+.search {
+  padding: 8px 16px;
 
-      .emoji {
-        &:hover {
-          background: #F5F7F9;
-        }
-      }
+  &-input {
+    height: 30px;
+    font-size: 12px;
+    padding: 6px;
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    outline: none;
+  }
+}
+
+.body {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  &-head {
+    padding: 8px 16px 0;
+    display: table;
+
+    > * {
+      display: table-cell;
+      vertical-align: middle;
     }
 
-    .emoji-category-header {
-      padding: 8px 16px 0;
-      display: table;
-
-      > * {
-        display: table-cell;
-        vertical-align: middle;
-      }
-    }
-
-    .emoji-category-title {
+    &-title {
       font-size: 14px;
       font-family: sans-serif;
       font-weight: normal;
       color: #444;
     }
 
-    .emoji-category-heading-decoration {
+    &-decoration {
       text-align: right;
     }
+  }
+}
 
-    .modifiers {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      vertical-align: middle;
-      white-space: nowrap;
+.modifiers {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  vertical-align: middle;
+  white-space: nowrap;
 
-      li {
-        display: inline-block;
-        padding: 0 2px;
+  li {
+    display: inline-block;
+    padding: 0 2px;
 
-        &:last-of-type {
-          padding-right: 0;
-        }
-
-        &:hover {
-          transition-duration: 200ms;
-          transform: scale(1.2);
-        }
-      }
-
-      .modifier {
-        display: inline-block;
-        border-radius: 10px;
-        width: 15px;
-        height: 15px;
-        position: relative;
-
-        &.active::after {
-          content: "";
-          display: block;
-          position: absolute;
-          width: 7px;
-          height: 7px;
-          border-radius: 10px;
-          border: 2px solid #fff;
-          top: 2px;
-          left: 2px;
-          box-sizing: unset;
-        }
-      }
+    &:last-of-type {
+      padding-right: 0;
     }
 
-    .emoji-search-wrapper {
-      padding: 8px 16px;
+    &:hover {
+      transition-duration: 200ms;
+      transform: scale(1.2);
     }
+  }
 
-    .emoji-search {
-      height: 30px;
-      font-size: 12px;
-      padding: 6px;
-      width: 100%;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-    }
+  &-item {
+    display: inline-block;
+    border-radius: 10px;
+    width: 15px;
+    height: 15px;
+    position: relative;
 
-    .emoji-categories-wrapper {
+    &-active::after {
+      content: "";
+      display: block;
       position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      width: 7px;
+      height: 7px;
+      border-radius: 10px;
+      border: 2px solid #fff;
+      top: 2px;
+      left: 2px;
+      box-sizing: unset;
     }
+  }
+}
+
+.emoji-row {
+  display: inline-flex;
+  flex-direction: row;
+  align-content: center;
+  padding-left: 8px;
+}
+
+.emoji-item {
+  :global(.joypixels) {
+    margin: 0;
+    top: 0;
+  }
+
+  &:hover {
+    background: #F5F7F9;
   }
 }
